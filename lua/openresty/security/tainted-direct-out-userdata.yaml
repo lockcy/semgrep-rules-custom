@@ -1,0 +1,38 @@
+rules:
+  - id: direct-out-userdata
+    mode: taint
+    options:
+      symbolic_propagation: true
+    message: >-
+      Detected direct output user data with ngx.say() or ngx.print().
+      If not done properly, this may cause cross-site scripting (XSS) vulnerabilities.
+      Prefer using a function to htmlencode userdata when it is output on the page.
+    metadata:
+      cwe:
+        - "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      owasp:
+        - A07:2017 - Cross-Site Scripting (XSS)
+        - A03:2021 - Injection
+      references:
+        -
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: $X.req.$METHOD
+          - metavairable-regex:
+              metavariable: $METHOD
+              regex: (get_body_data|raw_header|get_uri_args|get_headers|read_body|get_body_file)()
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - patterns:
+                  - pattern: $NGX.$FUNC(...)
+                  - metavariable-regex:
+                      metavariable: $FUNC
+                      regex: say|print
