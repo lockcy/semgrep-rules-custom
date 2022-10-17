@@ -1,0 +1,1 @@
+semgrep --config "lua/openresty/security" "lua/openresty/security" -o results.txt
