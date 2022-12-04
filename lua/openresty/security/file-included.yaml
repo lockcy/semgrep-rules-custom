@@ -1,0 +1,38 @@
+rules:
+  - id: file-included
+    options:
+      symbolic_propagation: true
+    message: >-
+      文件包含，使用 require 或 dofile 包含用户可控的文件
+    metadata:
+      comment:
+        - "dofile 还存在跨目录的问题，如果 dofile 参数可控，可以跨目录包含用户可控文件，如临时文件中的 session 文件"
+      owasp:
+        - A05:2017 - Broken Access Control
+        - A01:2021 - Broken Access Control
+      references:
+        - NA
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    pattern-either:
+      - patterns:
+        - pattern-either:
+            - pattern: |
+                $FUNC(...)
+        - pattern-not-inside: |
+            $FUNC("...")
+        - pattern-not-inside: |
+            local $VAR = "..."
+            ...
+            $FUNC($VAR)
+        - pattern-not-inside: |
+            $VAR = "..."
+            ...
+            $FUNC($VAR)
+        - metavariable-regex:
+            metavariable: $FUNC
+            regex: require|dofile

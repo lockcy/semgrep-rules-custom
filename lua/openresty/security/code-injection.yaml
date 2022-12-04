@@ -1,0 +1,60 @@
+rules:
+  - id: code-injection
+    options:
+      symbolic_propagation: true
+    message: >-
+      代码注入，使用 loadstring 或 load 执行不可信数据
+    metadata:
+      cwe:
+        - "CWE-94: Improper Control of Generation of Code ('Code Injection')"
+      comment:
+        - "从 lua 5.3 开始没法使用 loadstring 函数了，但 openresty 场景下使用 luajit 基于 lua5.1，仍可以使用 loadstring 函数"
+      owasp:
+        - A01:2017 - Injection
+        - A03:2021 - Injection
+      references:
+        - N/A
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    patterns:
+      - pattern-either:
+        - pattern: |
+            $FUNC(...)
+        - pattern: |
+            $FUNC(...)()
+        - pattern: |
+            $CALL(function()
+            ...
+            $FUNC(...)()
+            ...)
+      - pattern-not-inside: |
+          $FUNC("...")
+      - pattern-not-inside: |
+          $FUNC("...")()
+      - pattern-not-inside: |
+          $CALL(function()
+          ...
+          $FUNC("...")()
+          ...)
+      - pattern-not-inside: |
+          local $VAR = "..."
+          ...
+          $FUNC($VAR)
+      - pattern-not-inside: |
+          local $VAR = "..."
+          ...
+          $FUNC($VAR)()
+      - pattern-not-inside: |
+          local $VAR = "..."
+          ...
+          $CALL(function()
+          ...
+          $FUNC($VAR)()
+          ...)
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: loadstring|load

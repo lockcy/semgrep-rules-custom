@@ -1,0 +1,35 @@
+rules:
+  - id: unsafe-cipher
+    options:
+      symbolic_propagation: true
+    message: >-
+      将不安全的算法用于加密/敏感操作场景
+    metadata:
+      cwe:
+        - 'CWE-327: Use of a Broken or Risky Cryptographic Algorithm'
+      owasp:
+        - A03:2017 - Sensitive Data Exposure
+        - A02:2021 - Cryptographic Failures
+      references:
+        - N/A
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    pattern-either:
+      - patterns:
+        - pattern-either:
+            - pattern: |
+                $MOD.$FUNC(...)
+            - pattern: |
+                require $MODULE
+                ...
+                $MODULE.$FUNC(...)
+        - metavariable-regex:
+            metavariable: $MOD
+            regex: md5|sha1
+        - metavariable-regex:
+            metavariable: $MODULE
+            regex: (?i).*md5|sha1.*

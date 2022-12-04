@@ -1,0 +1,35 @@
+rules:
+  - id: cross-site-script
+    options:
+      symbolic_propagation: true
+    message: >-
+      XSS，使用 ngx.say 或 ngx.print 向网页输出不可信数据，如果数据直接回显至用户侧并渲染，存在 XSS 风险
+    metadata:
+      cwe:
+        - "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      owasp:
+        - A07:2017 - Cross-Site Scripting (XSS)
+        - A03:2021 - Injection
+      references:
+        - N/A
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    patterns:
+      - pattern: $NGX.$FUNC(...)
+      - pattern-not: |
+          $NGX.$FUNC("...")
+      - pattern-not-inside: |
+          local $VAR = "..."
+          ...
+          $NGX.$FUNC($VAR)
+      - pattern-not-inside: |
+          $VAR = "..."
+          ...
+          $NGX.$FUNC($VAR)
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: say|print

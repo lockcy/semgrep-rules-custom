@@ -1,0 +1,57 @@
+rules:
+  - id: path-traversal
+    options:
+      symbolic_propagation: true
+    message: >-
+      路径穿越，使用存在风险的文件处理函数处理不可信路径
+    metadata:
+      cwe:
+        - "CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')"
+      owasp:
+        - A05:2017 - Broken Access Control
+        - A01:2021 - Broken Access Control
+      references:
+        - N/A
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    pattern-either:
+      - patterns:
+        - pattern-either:
+            - pattern: |
+                $MODULE.$FUNC(...)
+        - pattern-not-inside: |
+            $MODEL.$FUNC("...")
+        - pattern-not-inside: |
+            $MODEL.$FUNC("...",...)
+        - pattern-not-inside: |
+            local $VAR = "..."
+            ...
+            $MODEL.$FUNC($VAR)
+        - pattern-not-inside: |
+            $VAR = "..."
+            ...
+            $MODEL.$FUNC($VAR)
+        - metavariable-regex:
+            metavariable: $FUNC
+            regex: remove|open|lines
+      - patterns:
+        - pattern-either:
+            - pattern: |
+                $MODULE.$FUNC(... , ...)
+        - pattern-not-inside: |
+            $MODEL.$FUNC("...","...")
+        - pattern-not-inside: |
+            local $VAR = "..."
+            ...
+            $MODEL.$FUNC("...",$VAR)
+        - pattern-not-inside: |
+            $VAR = "..."
+            ...
+            $MODEL.$FUNC("...",$VAR)
+        - metavariable-regex:
+            metavariable: $FUNC
+            regex: rename

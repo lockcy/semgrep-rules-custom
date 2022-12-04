@@ -1,0 +1,36 @@
+rules:
+  - id: dangerous-system-call
+    options:
+      symbolic_propagation: true
+    message: >-
+      命令注入，使用 os.execute 或 io.popen 执行不可信数据
+    metadata:
+      cwe:
+        - "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      owasp:
+        - A01:2017 - Injection
+        - A03:2021 - Injection
+      references:
+        - N/A
+      category: security
+      technology:
+        - openresty
+    languages:
+      - lua
+    severity: WARNING
+    patterns:
+      - pattern-either:
+        - pattern: $NGX.$FUNC(...)
+      - pattern-not-inside: |
+          $NGX.$FUNC("...")
+      - pattern-not-inside: |
+          local $VAR = "..."
+          ...
+          $NGX.$FUNC($VAR)
+      - pattern-not-inside: |
+          $VAR = "..."
+          ...
+          $NGX.$FUNC($VAR)
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: execute|popen
